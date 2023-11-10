@@ -50,4 +50,9 @@ dependencies {
 
     //OSM(Open Street Map)
     implementation ("org.osmdroid:osmdroid-android:6.1.17")
+//OSM(Route)
+    implementation ("org.osmdroid:osmdroid-mapsforge:6.1.17")
+
+
+
 }

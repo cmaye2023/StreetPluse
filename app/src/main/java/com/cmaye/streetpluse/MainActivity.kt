@@ -15,9 +15,9 @@ import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
-import org.osmdroid.util.TileSystem
 import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 
@@ -29,6 +29,8 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var boundingBox: BoundingBox
     private var desiredZoom: Double = 0.0
+    private var currentPoint: GeoPoint  ?= null
+    private var checkPoint: GeoPoint ?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +44,16 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnCurrent.setOnClickListener {
             enableMyLocationOverlay()
+        }
+
+        binding.btnRouteWay.setOnClickListener {
+            if (currentPoint != null && checkPoint != null)
+            {
+                // Calculate and display the route between the two points
+                val routePoints = calculateRoute(currentPoint!!, checkPoint!!)
+                displayRoute(routePoints)
+            }
+
         }
     }
 
@@ -76,20 +88,27 @@ class MainActivity : AppCompatActivity() {
         binding.streetMapView.overlays.add(myLocationOverlay)
 
         mapController = binding.streetMapView.controller
-
         // Set the tile source (e.g., Mapnik, CycleMap, MapQuestOSM)
         binding.streetMapView.setTileSource(TileSourceFactory.MAPNIK)
 
         // Disable zoom and scroll gestures
         binding.streetMapView.setMultiTouchControls(true)
+        binding.streetMapView.setBuiltInZoomControls(true)
+
+
+
+
+
         binding.streetMapView.isVerticalMapRepetitionEnabled = false
         binding.streetMapView.isHorizontalMapRepetitionEnabled = true
         binding.streetMapView.isTilesScaledToDpi = true
-        binding.streetMapView.minZoomLevel = 1.0
-        binding.streetMapView.maxZoomLevel = 16.0
-        binding.streetMapView.setScrollableAreaLimitLatitude(
-            TileSystem.MaxLatitude, -TileSystem.MaxLatitude, 0
-        )
+        binding.streetMapView.minZoomLevel = 4.0
+        binding.streetMapView.maxZoomLevel = 19.0
+        mapController.setZoom(5.0)
+
+        myLocationOverlay.enableMyLocation()
+        enableMyLocationOverlay()
+
         // Add map click events
         val eventsOverlay = MapEventsOverlay(mapEventsReceiver)
         binding.streetMapView.overlays.add(eventsOverlay)
@@ -99,6 +118,8 @@ class MainActivity : AppCompatActivity() {
     private val mapEventsReceiver = object : MapEventsReceiver {
         override fun singleTapConfirmedHelper(geoPoint: GeoPoint?): Boolean {
             geoPoint?.let { it ->
+
+                checkPoint = it
 // Remove previous marker if any
                 binding.streetMapView.overlays.removeAll { it is Marker }
 // Add new marker at the clicked point
@@ -115,10 +136,10 @@ class MainActivity : AppCompatActivity() {
                 Log.e("CUR_Longitude", it.longitude.toString())
                 // Zoom to the marker's location
                 boundingBox = binding.streetMapView.boundingBox
-                desiredZoom = calculateDesiredZoom(boundingBox,binding.streetMapView.width,binding.streetMapView.height)
+//                desiredZoom = calculateDesiredZoom(boundingBox,binding.streetMapView.width,binding.streetMapView.height)
                 runOnUiThread {
                     mapController.setCenter(it)
-                    mapController.setZoom(5.0)
+                    mapController.setZoom(16.0)
                 }
                 // Refresh the map
                 binding.streetMapView.invalidate()
@@ -137,7 +158,6 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         // Update the location overlay
         myLocationOverlay.enableMyLocation()
-        enableMyLocationOverlay()
     }
 
     override fun onPause() {
@@ -173,24 +193,44 @@ class MainActivity : AppCompatActivity() {
                 "${currentLocation.latitude}   ${currentLocation.longitude}"
             )
 
-            val startPoint: GeoPoint
             if (currentLocation != null) {
-                startPoint = GeoPoint(
+                currentPoint = GeoPoint(
                     myLocationOverlay.myLocation.latitude,
                     myLocationOverlay.myLocation.longitude
                 )
 
-//                // Calculate desired zoom level based on the width and height of the MapView
-//
-//                boundingBox = binding.streetMapView.boundingBox
+                // Calculate desired zoom level based on the width and height of the MapView
+
+                boundingBox = binding.streetMapView.boundingBox
 //                desiredZoom = calculateDesiredZoom(boundingBox,binding.streetMapView.width,binding.streetMapView.height)
                 runOnUiThread {
-                    mapController.setCenter(startPoint)
-                    mapController.setZoom(5.0)
+                    mapController.setCenter(currentPoint)
+                    mapController.setZoom(16.0)
                 }
 
             }
 
         }
+    }
+
+    private fun calculateRoute(startPoint: GeoPoint, endPoint: GeoPoint): List<GeoPoint> {
+        // You can calculate the route here using a routing service or library (not included in this example).
+        // For simplicity, we return a direct line between the two points.
+
+        val route = ArrayList<GeoPoint>()
+        route.add(startPoint)
+        route.add(endPoint)
+
+        return route
+    }
+
+    private fun displayRoute(routePoints: List<GeoPoint>) {
+        val routeOverlay = Polyline()
+        routeOverlay.color = getColor(R.color.red)
+        routeOverlay.width = 5.0f
+        routeOverlay.setPoints(routePoints)
+
+        binding.streetMapView.overlays.add(routeOverlay)
+        binding.streetMapView.invalidate()
     }
 }
