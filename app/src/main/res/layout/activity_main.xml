@@ -19,6 +19,15 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0" />
 
+    <TextView
+        android:id="@+id/tvLatLng"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        android:text="lat - lng"
+        app:layout_constraintBottom_toBottomOf="@+id/streetMapView"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnCurrent"
         android:layout_width="wrap_content"

@@ -96,9 +96,6 @@ class MainActivity : AppCompatActivity() {
         binding.streetMapView.setBuiltInZoomControls(true)
 
 
-
-
-
         binding.streetMapView.isVerticalMapRepetitionEnabled = false
         binding.streetMapView.isHorizontalMapRepetitionEnabled = true
         binding.streetMapView.isTilesScaledToDpi = true
